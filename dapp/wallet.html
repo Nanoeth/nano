@@ -1,0 +1,108 @@
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" src="abi.js" />
+<script type="text/javascript" src="util.js" />
+<script type="text/javascript">
+var communityContract
+var walletContract
+var community
+var wallet
+var gasLimit
+window.onload = function () {
+    google.charts.load('current', {'packages':['corechart']});
+   
+    var communityAddress = gup('community')
+    var walletAddress = gup('wallet')
+    var infoCommunity = document.getElementById('infoCommunity')
+    if (communityAddress) {
+        infoCommunity.innerHTML = 'at ' + communityAddress
+        community = communityContract.at(communityAddress)    
+    } else {
+        infoCommunity.innerHTML = 'No community specified'
+    }
+    var infoWallet = document.getElementById('infoWallet')
+    if (walletAddress) {
+        wallet = walletContract.at(walletAddress)
+        infoWallet.innerHTML = "Wallet at " + walletAddress
+    }
+}
+
+</script>
+<div>Wallet</div>
+<div id="infoCommunity"></div>
+<div id="infoWallet"></div>
+
+<div id='walletvalue'></div>
+<div id='walletblockorigin'></div>
+<div id='walletcurrentblock'></div>
+<button onclick="requestRefill()">Refill</button>
+<input id='from'></intput><input id='to'></intput><input id='value'></intput><button onclick="send()">Send</button>
+<div id='result'></div>
+
+<script type="text/javascript">    
+    function requestRefill() {
+        var resultDiv = document.getElementById('result')
+        resultDiv.innerHTML = 'Requesting refill ...'
+        community.requestRefill({from: web3.eth.accounts[0], gas: gasLimit}, function (error, transactionHash) {            
+            resultDiv.innerHTML = 'waiting confirmation from ' + transactionHash
+            tryTillResponse(transactionHash, function (error, result) {
+                console.log('requestRefill')
+                console.log(result)
+                resultDiv.innerHTML = 'request refill done'
+            })
+        })
+    }
+    
+    function send() {
+        var resultDiv = document.getElementById('result')
+        resultDiv.innerHTML = 'Sending ...'
+        community.send(document.getElementById('from').value, document.getElementById('to').value, parseInt(document.getElementById('value').value), {from: web3.eth.accounts[0], gas: gasLimit}, function (error, transactionHash) {
+            resultDiv.innerHTML = 'waiting confirmation from ' + transactionHash
+            tryTillResponse(transactionHash, function (error, result) {
+                console.log('sent')
+                console.log(result)
+                resultDiv.innerHTML = 'send done'
+            })
+        })
+    }    
+</script>
+    
+    
+<script type="text/javascript">
+
+var chartPlot = [['Block', 'Balance']]
+function plotChart (value) {
+    web3.eth.getBlockNumber(function (error, blockNumberResult) {
+        chartPlot.push([blockNumberResult, parseInt(value)])
+        var data = google.visualization.arrayToDataTable(chartPlot)
+         var options = {
+          title: 'Balance/Block',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+        };
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+        chart.draw(data, options);
+    })
+}
+function updateWallet () {
+    if (wallet) {
+        wallet.getValue(function (error, result) {
+            document.getElementById('walletvalue').innerHTML = error ? error : 'value:' + result.toString(10)
+            plotChart(result.toString(10))
+        })
+        wallet.getOriginBlockNumber(function (error, result) {
+            document.getElementById('walletblockorigin').innerHTML = error ? error : 'block origin:' + result.toString(10)
+            web3.eth.getBlockNumber(function (error, blockNumberResult) {
+                document.getElementById('walletcurrentblock').innerHTML = error ? error : 'current block: ' + blockNumberResult.toString() + '. block elapsed: ' + (blockNumberResult - result.toString(10)).toString()
+            })
+        })
+       
+    }
+    setTimeout(function () {
+        updateWallet ()
+    }, 1000)
+}
+updateWallet()
+
+</script>
+
+<div id="curve_chart" style="width: 900px; height: 500px"></div>
