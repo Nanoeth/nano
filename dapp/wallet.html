@@ -1,29 +1,28 @@
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript" src="abi.js" />
-<script type="text/javascript" src="util.js" />
+<script type="text/javascript" src="abi.js" ></script>
+<script type="text/javascript" src="util.js" ></script>
 <script type="text/javascript">
 var communityContract
 var walletContract
 var community
 var wallet
 var gasLimit
+var walletAddress
 window.onload = function () {
     google.charts.load('current', {'packages':['corechart']});
    
     var communityAddress = gup('community')
-    var walletAddress = gup('wallet')
+    walletAddress = gup('wallet')
     var infoCommunity = document.getElementById('infoCommunity')
     if (communityAddress) {
-        infoCommunity.innerHTML = 'at ' + communityAddress
-        community = communityContract.at(communityAddress)    
+        infoCommunity.innerHTML = 'Community at ' + communityAddress
+        community = communityContract().at(communityAddress)    
     } else {
         infoCommunity.innerHTML = 'No community specified'
     }
     var infoWallet = document.getElementById('infoWallet')
-    if (walletAddress) {
-        wallet = walletContract.at(walletAddress)
-        infoWallet.innerHTML = "Wallet at " + walletAddress
-    }
+    infoWallet.innerHTML = "Wallet at " + walletAddress
+    updateWallet()
 }
 
 </script>
@@ -35,6 +34,7 @@ window.onload = function () {
 <div id='walletblockorigin'></div>
 <div id='walletcurrentblock'></div>
 <button onclick="requestRefill()">Refill</button>
+<br />
 <input id='from'></intput><input id='to'></intput><input id='value'></intput><button onclick="send()">Send</button>
 <div id='result'></div>
 
@@ -84,12 +84,12 @@ function plotChart (value) {
     })
 }
 function updateWallet () {
-    if (wallet) {
-        wallet.getValue(function (error, result) {
+    if (walletAddress) {
+        community.currentValueOf(walletAddress, function (error, result) {
             document.getElementById('walletvalue').innerHTML = error ? error : 'value:' + result.toString(10)
             plotChart(result.toString(10))
         })
-        wallet.getOriginBlockNumber(function (error, result) {
+        community.originBlockNumebrOf(walletAddress, function (error, result) {
             document.getElementById('walletblockorigin').innerHTML = error ? error : 'block origin:' + result.toString(10)
             web3.eth.getBlockNumber(function (error, blockNumberResult) {
                 document.getElementById('walletcurrentblock').innerHTML = error ? error : 'current block: ' + blockNumberResult.toString() + '. block elapsed: ' + (blockNumberResult - result.toString(10)).toString()
@@ -101,7 +101,7 @@ function updateWallet () {
         updateWallet ()
     }, 1000)
 }
-updateWallet()
+
 
 </script>
 

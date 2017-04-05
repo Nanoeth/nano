@@ -1,15 +1,14 @@
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript" src="abi.js" />
-<script type="text/javascript" src="util.js" />
+<script type="text/javascript" src="abi.js" ></script>
+<script type="text/javascript" src="util.js" ></script>
 <script type="text/javascript">
-var communityContract
 var communityAddress
 var community
 window.onload = function () {
     communityAddress = gup('community')
     if (communityAddress) {
         document.getElementById('communityInfo').innerHTML = 'at ' + communityAddress
-        community = communityContract.at(communityAddress)    
+        community = communityContract().at(communityAddress)    
     } else {
         document.getElementById('communityInfo').innerHTML = 'No community specified'
     }
@@ -22,7 +21,7 @@ window.onload = function () {
     <input id='walletname'></intput><button id="createwalletbtn" onclick="createWallet()">Create wallet</button>
 </div>
 <div id='creationResult'></div>
-<a href="" id="link" >Wallet</a>
+<a href="" id="link" style="display:none" >Wallet</a>
 
 <script type="text/javascript">    
     function createWallet() {
@@ -40,14 +39,11 @@ window.onload = function () {
                 tryTillResponse(transactionHash, function (error, result) {
                     console.log('createWallet')
                     console.log(result)
-                    resultDiv.innerHTML = 'wallet created '
-                    community.walletByName(name.value, function (error, result) {
-                        document.getElementById('walletaction').style.display = 'block'
-                        resultDiv.innerHTML = 'wallet created at ' + result
-                        
-                        link.style.display = 'block'
-                        link.setAttribute('href', 'wallet.html?community=' + communityAddress + '&wallet=' + result)
-                    })
+                    resultDiv.innerHTML = 'wallet created for ' + web3.eth.accounts[0]
+                    
+                    link.style.display = 'block'
+                    link.setAttribute('href', 'wallet.html?community=' + communityAddress + '&wallet=' + web3.eth.accounts[0])
+                    link.innerHTML = 'go to wallet'
                 })
             }
         })
